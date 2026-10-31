@@ -88,7 +88,7 @@ int main()
 
             // esperamos a que acabe el nieto de P (hijo de H1) y mostramos el resultado de su exit
             waitpid(N1, &statusN1, 0);
-            if (WIFEXITED(statusN1))
+            if (WEXITSTATUS(statusN1))
             {
                 exitInf = WIFEXITED(statusN1);
                 printf("%s--[H1] El nieto con PID %d terminó normalmente. Su código de salida fue: %d\n", hora(), N1, exitInf);
@@ -135,9 +135,12 @@ int main()
 
     printf("%s--[P] Esperando a que termine H1\n", hora());
     waitpid(H1, &statusH1, 0);
-    if (WIFEXITED(statusH1))
+    if (WEXITSTATUS(statusH1))
     {
         exitInf = WIFEXITED(statusH1);
         printf("%s--[P] El hijo con PID %d terminó normalmente. Su código de salida fue: %d\n", hora(), H1, exitInf);
     }
+
+    printf("%s--[P] Terminado", hora());
+    exit(0);
 }

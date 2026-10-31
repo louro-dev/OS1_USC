@@ -49,9 +49,9 @@ int main(void)
     // Se inicializa el conjunto vacío.
     sigemptyset(&conjunto);
     // Se añade la señal SIGUSR1 al conjunto.
-    sigaddset(&conjunto, SIGUSR1);
+    sigaddset(&conjunto,SIGUSR1);
     // Bloquea las señales del conjunto añadiéndolas a las que el proceso ya tenía bloqueadas.
-    sigprocmask(SIG_BLOCK, &conjunto, NULL);
+    sigprocmask(SIG_BLOCK,&conjunto,NULL);
     printf("P  %s: Señal SIGUSR1 bloqueada.\n", hora());
 
     salida = fork();
@@ -60,7 +60,7 @@ int main(void)
     if (salida == 0)
     {
         // Se envía la señal SIGUSR1 al padre.
-        kill(getppid(), SIGUSR1);
+        kill(getppid(),SIGUSR1);
         printf("H1 %s: Señal SIGUSR1 enviada a P.\n", hora());
 
         int P = getppid(), nieto = fork();
@@ -70,7 +70,7 @@ int main(void)
         {
             // Se envía la señal SIGUSR2 al abuelo.
             printf("N1 %s: Enviando señal SIGUSR2 a P.\n", hora());
-            kill(P, SIGUSR2);
+            kill(P,SIGUSR2);
             printf("N1 %s: Durmiendo...\n", hora());
             sleep(5);
             printf("N1 %s: Terminando.\n", hora());
@@ -95,20 +95,18 @@ int main(void)
     // Se añaden las señales pendientes a ese conjunto.
     sigpending(&pendientes);
     // "señal" se pone a 1 si SIGUSR1 está en el conjunto de señales pendientes.
-    int señal = sigismember(&pendientes, SIGUSR1);
+    int señal = sigismember(&pendientes,SIGUSR1);
     // Si lo está, se imprime el mensaje.
     if (señal == 1)
-    {
-        printf("P  %s: La señal SIGUSR1 está bloqueada.\n", hora());
-    }
-    else
-    {
-        printf("P  %s: No se pudo bloquear SIGUSR1.\n", hora());
-    }
+        {printf("P  %s: La señal SIGUSR1 está bloqueada.\n", hora());}
+    if (señal == 0)
+        {printf("P  %s: La señal SIGUSR1 no está pendiente.\n", hora());}
+    if (señal == -1)
+        {printf("P  %s: No se pudo bloquear SIGUSR1.\n", hora());}
 
     // Ahora se desbloquea la señal.
-    sigprocmask(SIG_UNBLOCK, &conjunto, NULL);
     printf("P  %s: Señal SIGUSR1 desbloqueada.\n", hora());
+    sigprocmask(SIG_UNBLOCK,&conjunto,NULL);
     printf("P  %s: Esperando a que termine H1.\n", hora());
     wait(&status);
     status = WEXITSTATUS(status);
