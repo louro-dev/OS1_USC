@@ -83,7 +83,7 @@ void main(int argc, char *argv[])
                 cantidadHijos++;
 
                 // comprobamos que la cantidad de hijos sea menor que 5
-                if (cantidadHijos >= 5)
+                if (cantidadHijos > 5)
                 {
                     printf("\nMaximo de hijos (5) alcanzado, cerrando ejecucion...\n");
                     // salimos del bucle para que no se quede otra vez en el pause
