@@ -1,14 +1,5 @@
 #include "libs.h"
 
-void manejador_sigUsr1(int sig)
-{
-    printf("\n%s--Se ha recibido la señal SIGUSR1\n", hora());
-}
-void manejador_sigUsr2(int sig)
-{
-    printf("%s--\nSe ha recibido la señal SIGUSR2\n", hora());
-}
-
 char *hora(void)
 {
     // Buffer estático: sigue existiendo cuando la función termina, así que se puede devolver.
@@ -28,6 +19,15 @@ char *hora(void)
     return hora;
 }
 
+void manejador_sigUsr1(int sig)
+{
+    printf("\n%s--[M] Se ha recibido la señal SIGUSR1\n", hora());
+}
+void manejador_sigUsr2(int sig)
+{
+    printf("%s--[M] Se ha recibido la señal SIGUSR2\n", hora());
+}
+
 int main()
 {
     // creamos conjunto de señales que se bloquearan (solo se añade SIGUSR1)
@@ -38,10 +38,10 @@ int main()
     // bloqueamos SIGUSR1 antes de que H1 lo mande
     if ((sigprocmask(SIG_BLOCK, &block, NULL)) == -1)
     {
-        printf("%s--Error al bloquear la señal SIGUSR1", hora());
+        printf("%s--Error al bloquear la señal SIGUSR1\n", hora());
         exit(1);
     }
-    printf("%s--señar SIGUSR1 bloqueada");
+    printf("%s--[P] Señal SIGUSR1 bloqueada\n", hora());
 
     struct sigaction usr1;
     usr1.sa_handler = manejador_sigUsr1;
@@ -49,7 +49,7 @@ int main()
     usr1.sa_flags = SA_RESTART;
     if (sigaction(SIGUSR1, &usr1, NULL) == -1)
     {
-        printf("%s--error al enlazar el manejador de SIGUSR1", hora());
+        printf("%s--[P] Error al enlazar el manejador de SIGUSR1\n", hora());
     }
 
     struct sigaction usr2;
@@ -58,23 +58,23 @@ int main()
     usr2.sa_flags = SA_RESTART;
     if (sigaction(SIGUSR2, &usr2, NULL) == -1)
     {
-        printf("%s--error al enlazar el manejador de SIGUSR2", hora());
+        printf("%s--[P] error al enlazar el manejador de SIGUSR2\n", hora());
     }
 
     int H1 = 0, P = getpid();
     if ((H1 = fork()) == 0)
     {
-        printf("%s--[H1] he sido creado", hora());
+        printf("%s--[H1] He sido creado\n", hora());
         int N1 = 0;
         if ((N1 = fork()) == 0)
         {
             //--N1
-            printf("%s--[N1] he sido creado", hora());
+            printf("%s--[N1] He sido creado\n", hora());
             kill(P, SIGUSR2);
             printf("%s--[N1] Enviando señal SIGUSR2\n", hora());
-            printf("%s--[N1] durmiendo...", hora());
+            printf("%s--[N1] Durmiendo...\n", hora());
             sleep(5);
-            printf("\n%s--[N1]terminado\n", hora());
+            printf("\n%s--[N1] Terminado\n", hora());
             exit(6);
         }
         else
@@ -93,7 +93,7 @@ int main()
                 exitInf = WIFEXITED(statusN1);
                 printf("%s--[H1] El nieto con PID %d terminó normalmente. Su código de salida fue: %d\n", hora(), N1, exitInf);
             }
-            printf("\n%s--[H1]terminado", hora());
+            printf("%s--[H1] Terminado\n", hora());
             exit(7);
         }
     }
@@ -101,12 +101,12 @@ int main()
     //--PADRE
     int statusH1, exitInf;
 
-    printf("%s--[P]Señal SIGUSR1 bloqueada, esperando 5 segundos para que acabe N1", hora());
+    printf("%s--[P] Esperando 5 segundos para que acabe N1\n", hora());
     sleep(5);
 
     if (sigpending(&pendientes) == -1)
     {
-        printf("%s--[P] Error con el sigpending", hora());
+        printf("%s--[P] Error con el sigpending\n", hora());
         return EXIT_FAILURE;
     }
 
@@ -114,30 +114,30 @@ int main()
 
     if (pdng == 1)
     {
-        printf("%s--[P] la señal SIGUSR1 sigue bloqueada", hora());
+        printf("%s--[P] La señal SIGUSR1 sigue bloqueada\n", hora());
     }
-    if (pdng == 0)
+    else if (pdng == 0)
     {
-        printf("%s--[P] error, la señal SIGUSR1 no esta pendiente", hora());
+        printf("%s--[P] Error, la señal SIGUSR1 no esta pendiente\n", hora());
     }
     else
     {
-        printf("%s--[P] Error, valor invalido de sigismember", hora());
+        printf("%s--[P] Error, valor invalido de sigismember\n", hora());
     }
 
+    printf("%s--[P] SIGUSR1 desbloqueada", hora());
     // desbloqueamos la señal
     if (sigprocmask(SIG_UNBLOCK, &block, NULL) == -1)
     {
-        printf("%s--Error al desbloquear", hora());
+        printf("%s--[P] Error al desbloquear\n", hora());
         exit(EXIT_FAILURE);
     }
-    printf("%s--[P] SIGUSR1 desbloqueada", hora());
 
+    printf("%s--[P] Esperando a que termine H1\n", hora());
     waitpid(H1, &statusH1, 0);
-    printf("%s--[P] esperando a que termine H1", hora());
     if (WIFEXITED(statusH1))
     {
         exitInf = WIFEXITED(statusH1);
-        printf("%s--[P] El hijo %d terminó normalmente. Su código de salida fue: %d\n", hora(), H1, exitInf);
+        printf("%s--[P] El hijo con PID %d terminó normalmente. Su código de salida fue: %d\n", hora(), H1, exitInf);
     }
 }
