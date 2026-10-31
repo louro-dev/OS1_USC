@@ -14,7 +14,7 @@ void manejador_alarm(int sig)
     flag_alarm = 1;
 }
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     // variable que guarda la cantidad de hijos a lo largo ed la ejecucion
     int cantidadHijos = 0;
